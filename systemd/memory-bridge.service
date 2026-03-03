@@ -1,0 +1,38 @@
+[Unit]
+Description=Memory Bridge Service
+Documentation=https://github.com/n00n0i/memory-bridge
+After=network.target
+
+[Service]
+Type=simple
+User=memory-bridge
+Group=memory-bridge
+WorkingDirectory=/opt/memory-bridge
+Environment="PYTHONUNBUFFERED=1"
+Environment="SUPABASE_URL=%i"
+EnvironmentFile=/etc/memory-bridge/env
+
+# Security
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/log/memory-bridge
+
+# Resource limits
+LimitNOFILE=65535
+LimitNPROC=4096
+
+# Restart policy
+Restart=always
+RestartSec=5
+StartLimitInterval=60s
+StartLimitBurst=3
+
+# Health check
+ExecStartPre=/bin/sh -c 'test -f /etc/memory-bridge/env'
+ExecStart=/opt/memory-bridge/venv/bin/python /opt/memory-bridge/memory_bridge_production.py --port 5000
+ExecReload=/bin/kill -HUP $MAINPID
+
+[Install]
+WantedBy=multi-user.target
